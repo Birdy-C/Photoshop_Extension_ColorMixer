@@ -1,0 +1,12 @@
+<ExtensionList>
+    <!-- 1 -->
+    <Extension Id="com.my.test.panel">
+        <HostList>
+
+            <!-- 2 -->
+            <Host Name="PHXS" Port="9876" />
+            <Host Name="PHSP" Port="9876" />
+
+        </HostList>
+    </Extension>
+</ExtensionList> 
