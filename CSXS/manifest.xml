@@ -8,8 +8,8 @@
   <ExecutionEnvironment>
     <HostList>
       <!-- 3) -->
-	  <Host Name="PHSP" Version="19" />
-      <Host Name="PHXS" Version="19" />
+	  <Host Name="PHSP" Version="[17.0,99.9]" />
+      <Host Name="PHXS" Version="[17.0,99.9]" />
     </HostList>
     <LocaleList>
       <Locale Code="All" />
