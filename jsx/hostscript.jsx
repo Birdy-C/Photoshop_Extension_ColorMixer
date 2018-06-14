@@ -6,8 +6,10 @@ var eventClose = 1131180832;  // "Cls "
 var eventSelect = 1936483188; // "slct" 
 var eventSet = 1936028772;    // "setd" 
 
+var worklayer;
+var myLayerSets = new Array();
+var index = 0;
 
-var worklayer; 
 // Init Set for dispatch
 try {
     var loadSuccess = new ExternalObject("lib:\PlugPlugExternalObject"); //载入所需对象，loadSuccess 记录是否成功载入
@@ -24,6 +26,11 @@ function addNewColor(inColor) {
         layerRef.name = "ColorMixer";
         var layerRefMask = app.activeDocument.artLayers.add();
         layerRefMask.name = "CM mask";
+        myLayerSets[index] = layerRef;
+        index++;
+        myLayerSets[index] = layerRefMask;
+        index++;
+
         // layerRefMask.blendMode = BlendMode.NORMAL; // auto
 
         worklayer.move(layerRef, ElementPlacement.PLACEBEFORE);
@@ -36,7 +43,6 @@ function addNewColor(inColor) {
         colorRef.rgb.hexValue = inColor;
         app.activeDocument.selection.fill(colorRef);
 
-
         alert("create");
     } catch (e) {
         alert(e);
@@ -44,22 +50,47 @@ function addNewColor(inColor) {
 
 }
 
-
-
-function changChoosedColor() {
-    // 先把工作图层的内容合到前几个图层之内
-    // 把所有图层被绘制涉及到的部分清空
-
-
-    //接着合并到其他的图层里
-
-
-    //清空工作图层
-
-
-    //修改工作图层的颜色
-
+function setAlllayerInvisiable(info) {
+    try {
+        var i = 0;
+        for (i = 0; i < index; i++)
+        {
+            myLayerSets[i].visible = info;
+        }
+        app.activeDocument.backgrounLayer = info;
+    } catch (e) {
+        alert(e);
+    }
 }
+
+
+function ChangeSelectedColor() {
+    try {
+       // alert(index);
+        // 先把工作图层的内容合到前几个图层之内
+        // 把所有图层被绘制涉及到的部分清空
+        // 把其他都设置成不可见 读取工作图层的通道
+        setAlllayerInvisiable(false);
+        app.activeDocument
+        var selection = app.activeDocument.selection;
+        var channelAll = app.activeDocument.channels[0];
+        selection.load(channelAll,SelectionType.REPLACE);
+
+        setAlllayerInvisiable(true);
+
+        //接着合并到其他的图层里
+
+
+        //清空工作图层
+
+
+        //change the forground color
+
+    } catch (e) {
+        alert(e);
+    }
+}
+
 
 function unwanttedOperation() {
     alert("Warning: Unwanted Treatment Towards The Layer Preserved For ColorMixer May Course ERROR!");

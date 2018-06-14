@@ -58,7 +58,7 @@ function CreateNewLayer() {
     console.log("Create");
     //TODO
     numOfAllBall++;
-    csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' make such a strange error!!
+    csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
 }
 
 
@@ -105,6 +105,13 @@ function PSCallbackEvent(csEvent) {
     }
 }
 
+// ============= Choose the color =============
+function ChangeSelectedColor() {
+    console.log("ChangeSelectedColor");
+    csInterface.evalScript("ChangeSelectedColor()");
+}
+
+
 // ==================================================================
 //
 // ==================================================================
@@ -136,11 +143,15 @@ function init() {
     // 初始化界面
     themeManager.init();
 
-    $("#btn_create").click(function () {
-        CreateNewLayer();
-    });
-
     try {
+        $("#btn_create").click(function () {
+            CreateNewLayer();
+        });
+
+        $("#btn_change").click(function () {
+            ChangeSelectedColor();
+        });
+
         Register(true, gRegisteredEvents.toString());
     } catch (e) {
         JSLogIt("InitializeCallback catch: " + e);
