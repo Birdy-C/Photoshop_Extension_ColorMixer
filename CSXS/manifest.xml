@@ -9,8 +9,8 @@
             <!-- Uncomment Host tags according to the apps you want your panel to support -->
             <!-- Photoshop -->
 
-            <Host Name="PHXS" Version="[15.0,18.9]" />
-            <Host Name="PHSP" Version="[15.0,18.9]" />
+            <Host Name="PHXS" Version="[15.0,19.9]" />
+            <Host Name="PHSP" Version="[15.0,19.9]" />
 
             <!-- Illustrator -->
             <!-- <Host Name="ILST" Version="[18.0,18.9]" />-->
