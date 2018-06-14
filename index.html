@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -11,13 +11,28 @@
 
 <body class="hostElt">
 
-    <div id="content">        
+    <div id="content">
         
         <div>                
             <button id="btn_test" class="topcoat-button--large hostFontSize">Call ExtendScript</button>                
         </div>   
-        
-    </div>
+        <div>
+
+            <!--create new layer with the foreground color-->
+            X: <input type="number" id="xAxis" min="1" max="10" />
+            Y: <input type="number" id="yAxis" min="1" max="10" />
+            R: <input type="number" id="radius" min="1" max="10" />
+            <div id="CreateColor" style="background-color:tomato;">Color</div>
+            <button id="btn_create" class="topcoat-button--large hostFontSize">Create</button>
+
+        </div>
+
+        <div>
+
+            <!--<button id="btn_create">Create</button>-->
+        </div>
+
+  </div>
     
     <script src="js/libs/CSInterface.js"></script>
     <script src="js/libs/jquery-2.0.2.min.js"></script>

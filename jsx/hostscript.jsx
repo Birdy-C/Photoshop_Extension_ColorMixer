@@ -1,5 +1,4 @@
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global $, Folder*/
+// Birdy 18.6.12
 // some events we are interested in
 var eventMake = 1298866208;   // "Mk  "
 var eventDelete = 1147958304; // "Dlt "
@@ -7,10 +6,16 @@ var eventClose = 1131180832;  // "Cls "
 var eventSelect = 1936483188; // "slct" 
 var eventSet = 1936028772;    // "setd" 
 
+// Init Set for dispatch
+try {
+    var loadSuccess = new ExternalObject("lib:\PlugPlugExternalObject"); //载入所需对象，loadSuccess 记录是否成功载入
+} catch (e) {
+    alert(e);// 如果载入失败，输出错误信息
+}
+
+// function for test
 function sayHello(){
-    //alert("hello from ExtendScript");
-    var idmodalStateChanged = stringIDToTypeID("setd");
-    alert(idmodalStateChanged + " 1");
+    alert("hello from ExtendScript");
 }
 
 function openDocument(){
@@ -28,7 +33,6 @@ function addNewColor() {
 
 
 }
-
 
 
 
@@ -52,20 +56,29 @@ function unwanttedOperation() {
 }
 
 
-var dodo = function (info) {
-    alert("Debug:" + info);
-}
+
 
 function getForgroudColor() {
+    //alert(loadSuccess);
+    try {
+        if (loadSuccess) {
+            var eventJAX = new CSXSEvent();                     //创建事件对象
+            eventJAX.type = "com.HCI.ColorMixer.colorsys";      //设定一个类型名称
+            eventJAX.data = app.foregroundColor.rgb.hexValue;   // 事件要传递的信息
+            eventJAX.dispatch();                                // GO ! 发送事件
+            //alert("Already Diapatch")
+        }
+        else {
+            alert("Unable to Synchronize Color")
+        }
+    } catch (e) {
+        alert(e);// 如果载入失败，输出错误信息
+    }
+
     return app.foregroundColor;
 }
 
-function PSCallbackEvent()
-{
-    event.data = event.data.replace("ver1,{", "{"); //去掉前缀 “ver1,”
-    var esEvent = JSON.parse(event.data); //把  JSON 字符串转换成对象
-    alert(esEvent.eventID + "\n" + esEvent.eventData); //使用 eventID 属性判断事件类型，eventData 为事件数据
-}
+
 
 // =============================================================
 // Function For Output
@@ -75,7 +88,7 @@ function LogIt(inMessage) {
         var a = new Logger();
         var b = decodeURIComponent(inMessage);
         //a.log(b + "\n");
-        a.show(b);
+        a.showalert(b);
     }
     catch (e) {
         alert("LogIt catch : " + e + ":" + e.line);
@@ -99,6 +112,7 @@ function LogIt(inMessage) {
 //   a.display();
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 function Logger(inFile) {
 
     // member properties
@@ -148,7 +162,7 @@ function Logger(inFile) {
         this.file.remove();
     }
 
-    this.show = function (inMessage) {
+    this.showalert = function (inMessage) {
         alert(inMessage);    
     }
 }
