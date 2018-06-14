@@ -30,41 +30,54 @@ var xAxis = window.document.getElementById("xAxis");
 var yAxis = window.document.getElementById("yAxis");
 var radius = window.document.getElementById("radius");
 var CreateColor = window.document.getElementById("CreateColor");
-var forgroudColor;
+
+var forgroundColor = "FFFFFF";
 
 //============= Place for Recording =============
-var RecordedPoint = new Array(); // record the color ball
-var selectedColor = new Array();
+var RecordedBall = new Array();     // record the color ball
+var selectedColor = new Array();    // record the percent of each selected ball
+var usedColor = new Array();        // record used Color
+var selectedBall;                   // record the ball being choosen
+var numOfSettedBall = 0;
+var numOfAllBall = 0;
 
-var usedColor = new Array(); // record used Color
 
-
-
-function Point(MainlayerID, MasklayerID, Color, x, y, radius) {
+function Point(Color, x, y, radius) {
     this.color = Color;
-    this.MainlayerID = MainlayerID;
-    this, MasklayerID = MainlayerID;
+    //this.MainlayerID = MainlayerID;
+    //this.MasklayerID = MasklayerID;   
+    this.MainlayerID;
+    this.MasklayerID;
     this.x = x;
     this.y = y;
     this.radius = radius;
 }
 
 // ============= Synchronize the color =============
-
-
 function CreateNewLayer() {
     console.log("Create");
     //TODO
+    numOfAllBall++;
+    csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' make such a strange error!!
 }
 
-// ============= Callback Events =============
 
+function CreateNewLayerSetIDCallbackEvent() {
+    console.log("Create");
+    //WARNING wander whether synchronize will meet error
+
+    //csInterface.evalScript("CreateNewLayer('" + +")'");
+}
+
+
+// Synchronize the color 
 function ColorSychronizeCallbackEvent(csEvent)
 {
     //TODO
     console.log("ColorSychronizeCallbackEvent");
     console.log(csEvent);
     CreateColor.style.backgroundColor = '#' + csEvent.data;
+    forgroundColor = csEvent.data;
 }
 
 
@@ -123,10 +136,6 @@ function init() {
     // 初始化界面
     themeManager.init();
 
-    $("#btn_test").click(function () {
-        csInterface.evalScript('sayHello()');
-    });
-
     $("#btn_create").click(function () {
         CreateNewLayer();
     });
@@ -137,6 +146,9 @@ function init() {
         JSLogIt("InitializeCallback catch: " + e);
     }
 
+    csInterface.evalScript("getForgroudColor()");
+
 }
+
 init();
 

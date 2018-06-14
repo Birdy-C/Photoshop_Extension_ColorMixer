@@ -6,6 +6,8 @@ var eventClose = 1131180832;  // "Cls "
 var eventSelect = 1936483188; // "slct" 
 var eventSet = 1936028772;    // "setd" 
 
+
+var worklayer; 
 // Init Set for dispatch
 try {
     var loadSuccess = new ExternalObject("lib:\PlugPlugExternalObject"); //载入所需对象，loadSuccess 记录是否成功载入
@@ -13,24 +15,32 @@ try {
     alert(e);// 如果载入失败，输出错误信息
 }
 
-// function for test
-function sayHello(){
-    alert("hello from ExtendScript");
-}
 
-function openDocument(){
-    //var fileRef = new File("~/Downloads/myFile.jpg");
-    //var docRef = app.open(fileRef);
-    app.documents.add();// 新建一个文档
-}
-
-
-function addNewColor() {
-    // https://wwwimages2.adobe.com/content/dam/acom/en/devnet/photoshop/pdfs/photoshop-cc-javascript-ref-2015.pdf 
-    // P 34
+function addNewColor(inColor) {
     // 新建图层
     //var myLayer = active
+    try {
+        var layerRef = app.activeDocument.artLayers.add();
+        layerRef.name = "ColorMixer";
+        var layerRefMask = app.activeDocument.artLayers.add();
+        layerRefMask.name = "CM mask";
+        // layerRefMask.blendMode = BlendMode.NORMAL; // auto
 
+        worklayer.move(layerRef, ElementPlacement.PLACEBEFORE);
+        worklayer.move(layerRefMask, ElementPlacement.PLACEBEFORE);
+
+        app.activeDocument.selection.selectAll;
+        layerRefMask.grouped = true;
+
+        var colorRef = new SolidColor;
+        colorRef.rgb.hexValue = inColor;
+        app.activeDocument.selection.fill(colorRef);
+
+
+        alert("create");
+    } catch (e) {
+        alert(e);
+    }
 
 }
 
@@ -166,5 +176,14 @@ function Logger(inFile) {
         alert(inMessage);    
     }
 }
+
+
+function init() {
+    worklayer = app.activeDocument.artLayers.add();
+    worklayer.name = "CM Workspace";
+    //getForgroudColor();
+}
+
+init();
 
 // end ps.jsx
