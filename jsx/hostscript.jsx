@@ -10,6 +10,9 @@ var worklayer;
 var myLayerSets = new Array();
 var index = 0;
 
+var colorblack = new SolidColor;
+var colorwhite = new SolidColor;
+
 // Init Set for dispatch
 try {
     var loadSuccess = new ExternalObject("lib:\PlugPlugExternalObject"); //载入所需对象，loadSuccess 记录是否成功载入
@@ -43,6 +46,8 @@ function addNewColor(inColor) {
         colorRef.rgb.hexValue = inColor;
         app.activeDocument.selection.fill(colorRef);
 
+        app.activeDocument.activeLayer = worklayer;
+
         alert("create");
     } catch (e) {
         alert(e);
@@ -64,25 +69,54 @@ function setAlllayerInvisiable(info) {
 }
 
 
-function ChangeSelectedColor() {
+function ChangeSelectedColor(selectedColor) {
     try {
        // alert(index);
         // 先把工作图层的内容合到前几个图层之内
         // 把所有图层被绘制涉及到的部分清空
         // 把其他都设置成不可见 读取工作图层的通道
-        setAlllayerInvisiable(false);
-        app.activeDocument
-        var selection = app.activeDocument.selection;
-        var channelAll = app.activeDocument.channels[0];
-        selection.load(channelAll,SelectionType.REPLACE);
+        //setAlllayerInvisiable(false);
+        //app.activeDocument
 
-        setAlllayerInvisiable(true);
+        // change the drawing to black and white then
+        var layerBlack = app.activeDocument.artLayers.add();
+        app.activeDocument.selection.selectAll;
+        app.activeDocument.selection.fill(colorblack);
+        
+        var layerWhite = app.activeDocument.artLayers.add();
+        app.activeDocument.selection.fill(colorwhite);
+
+        worklayer.move(layerBlack, ElementPlacement.PLACEBEFORE);
+        worklayer.move(layerWhite, ElementPlacement.PLACEAFTER);
+
+        layerWhite.grouped = true;
+
+        var selection = app.activeDocument.selection;   // initilize
+        var channelDraw = app.activeDocument.channels[0];
+        selection.load(channelDraw, SelectionType.REPLACE);
+        // TODO add check if the layer is empty
+
+        layerWhite.remove();
+        layerBlack.remove();
+
+        for (i = 0; i < index; i = i + 2) {
+            app.activeDocument.activeLayer = myLayerSets[i];
+            selection.clear();
+        }
 
         //接着合并到其他的图层里
 
+        var colortemp = colorblack;
+        for (i = 0; i < index; i = i + 2) {
+            app.activeDocument.activeLayer = myLayerSets[i];
+            selection.fill(colortemp,ColorBlendMode.NORMAL,selectedColor[i>>1]);// black to make it clear
+        }
+
+
 
         //清空工作图层
-
+        selection.deselect();
+        worklayer.clear();
 
         //change the forground color
 
@@ -210,9 +244,23 @@ function Logger(inFile) {
 
 
 function init() {
+    try {
+
     worklayer = app.activeDocument.artLayers.add();
     worklayer.name = "CM Workspace";
     //getForgroudColor();
+
+
+    colorblack.rgb.red = 0;
+    colorblack.rgb.green = 0;
+    colorblack.rgb.blue = 0;
+    colorwhite.rgb.red = 255;
+    colorwhite.rgb.green = 255;
+    colorwhite.rgb.blue = 255;
+    } catch (e) {
+        alert(e);// 如果载入失败，输出错误信息
+    }
+
 }
 
 init();

@@ -35,19 +35,13 @@ var forgroundColor = "FFFFFF";
 
 //============= Place for Recording =============
 var RecordedBall = new Array();     // record the color ball
-var selectedColor = new Array();    // record the percent of each selected ball
-var usedColor = new Array();        // record used Color
-var selectedBall;                   // record the ball being choosen
-var numOfSettedBall = 0;
-var numOfAllBall = 0;
+var selectedColor = new Array();    // record the percent of each selected ball  within [0,100]
+//var usedColor = new Array();       // record used Color
+var selectedBall = -1;               // record the index of ball being choosen
 
 
 function Point(Color, x, y, radius) {
     this.color = Color;
-    //this.MainlayerID = MainlayerID;
-    //this.MasklayerID = MasklayerID;   
-    this.MainlayerID;
-    this.MasklayerID;
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -61,7 +55,7 @@ function CreateNewLayer() {
     csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
 }
 
-
+// TODO no use
 function CreateNewLayerSetIDCallbackEvent() {
     console.log("Create");
     //WARNING wander whether synchronize will meet error
@@ -108,7 +102,11 @@ function PSCallbackEvent(csEvent) {
 // ============= Choose the color =============
 function ChangeSelectedColor() {
     console.log("ChangeSelectedColor");
-    csInterface.evalScript("ChangeSelectedColor()");
+
+
+
+    csInterface.evalScript("ChangeSelectedColor('" + selectedColor + "')");
+    
 }
 
 
@@ -119,7 +117,7 @@ function ChangeSelectedColor() {
 // register events
 // Tell Photoshop the events we want to listen for
 function Register(inOn, inEvents) {
-    gStartDate = new Date();
+    // gStartDate = new Date();
     var event;
     if (inOn) {
         event = new CSEvent("com.adobe.PhotoshopRegisterEvent", "APPLICATION");
