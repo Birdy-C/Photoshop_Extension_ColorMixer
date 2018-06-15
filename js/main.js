@@ -13,9 +13,7 @@ var eventClose = 1131180832;    // "Cls "
 var eventSelect = 1936483188;   // "slct" 
 var eventSet = 1936028772;      // "setd" 
 
-
-
-// ============= Register Events =============
+//  Register Events 
 var gRegisteredEvents = [eventMake, eventDelete, eventClose, eventSelect, eventSet];
 
 // all callbacks need to be unique so only your panel gets them
@@ -23,35 +21,79 @@ var gRegisteredEvents = [eventMake, eventDelete, eventClose, eventSelect, eventS
 csInterface.addEventListener("com.adobe.PhotoshopJSONCallback" + gExtensionID, PSCallbackEvent);
 csInterface.addEventListener("com.HCI.ColorMixer.colorsys", ColorSychronizeCallbackEvent);
 
-// ============= UI items =============
+//  UI items 
 // create new layer
 //
-var xAxis = window.document.getElementById("xAxis");
-var yAxis = window.document.getElementById("yAxis");
-var radius = window.document.getElementById("radius");
-var CreateColor = window.document.getElementById("CreateColor");
-
+var UIxAxis = window.document.getElementById("xAxis");
+var UIyAxis = window.document.getElementById("yAxis");
+var UIradius = window.document.getElementById("radius");
+var UICreateColor = window.document.getElementById("CreateColor");
+var UICanvas = window.document.getElementById("maincanvas");
+var UICanvasContext = window.document.getElementById("maincanvas").getContext("2d");
+//console.log(UICanvas);
+//console.log(UICanvasContext);
 var forgroundColor = "FFFFFF";
-
-//============= Place for Recording =============
-var RecordedBall = new Array();     // record the color ball
-var selectedColor = new Array();    // record the percent of each selected ball  within [0,100]
+var canvasColor = "#FFFFFF"
+// Place for Recording 
+var RecordedBlob = new Array();     // record the color ball
+var ColorPercent = new Array();    // record the percent of each selected ball  within [0,100]
 //var usedColor = new Array();       // record used Color
-var selectedBall = -1;               // record the index of ball being choosen
+var selectedBlob = -1;               // record the index of ball being choosen
 
+// Place for parameter
+//MARK  may need slighty change it for a bettr effect
+var falloff = 5;
+var Threshold = 0.1;
 
-function Point(Color, x, y, radius) {
+function Blob(Color, x, y, radius) {
     this.color = Color;
+    this.center = new Point(x, y);
+    this.radius = radius;
+}
+
+function Point(x, y) {
     this.x = x;
     this.y = y;
-    this.radius = radius;
+}
+
+function Color(init)
+{
+    this.red = init;
+    this.green = init;
+    this.blue = init;
+
+    function ColorToHexString() {
+        var s = "";
+        try {
+            s += this.red.toString(16);
+            s += this.green.toString(16);
+            s += this.blue.toString(16);
+        } catch (e) {
+            s = e.toString();
+        }
+        return s;
+    }
+
+    function add(newcolor, per) {
+        this.red += newcolor.red * per;
+        this.green += newcolor.green * per;
+        this.blue += newcolor.blue * per;    
+    }
+
+    function divid(per){
+        this.red /= per;
+        this.green /= per;
+        this.blue /= per;
+ 
+    }
+
 }
 
 // ============= Synchronize the color =============
 function CreateNewLayer() {
     console.log("Create");
     //TODO
-    numOfAllBall++;
+    numOfAllBlob++;
     csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
 }
 
@@ -70,7 +112,7 @@ function ColorSychronizeCallbackEvent(csEvent)
     //TODO
     console.log("ColorSychronizeCallbackEvent");
     console.log(csEvent);
-    CreateColor.style.backgroundColor = '#' + csEvent.data;
+    UICreateColor.style.backgroundColor = '#' + csEvent.data;
     forgroundColor = csEvent.data;
 }
 
@@ -105,14 +147,75 @@ function ChangeSelectedColor() {
 
 
 
-    csInterface.evalScript("ChangeSelectedColor('" + selectedColor + "')");
+    csInterface.evalScript("ChangeSelectedColor('" + ColorPercent + "')");
     
+}
+
+function redrawCanvas() {
+    console.log("redrawCanvas");
+    height = UICanvas.getAttribute("height");
+    width = UICanvas.getAttribute("width");
+
+    var data = UICanvasContext.createImageData(width, height);
+    for (var x = 0; x < data.width; x++) {
+        for (var y = 0; y < data.height; y++) {
+            var point = new Point();
+            point.x = x;
+            point.y = y;
+            var getcolor = calPercentage(point, false);
+            //console.log(getcolor);
+
+            var index = (y * data.width + x) * 4;  //calculate index
+            data.data[index] = getcolor.red;   // red
+            data.data[index + 1] = getcolor.green; // green
+            data.data[index + 2] = getcolor.blue; // blue
+            data.data[index + 3] = 255; // force alpha to 100%
+        }
+    }
+    //set the data back
+    UICanvasContext.putImageData(data, 0, 0);
 }
 
 
 // ==================================================================
-//
+// 功能函数
 // ==================================================================
+function distance2(pointA, pointB)
+{
+    return Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2);
+}
+
+function Percentage(pointA, pointB, r) {
+    var temp = distance2(pointA, pointB) / Math.pow(r + falloff, 2);
+    if (temp > 1) {
+        return 0;
+    }
+    else {
+        return 1 - 4 / 9 * Math.pow(temp, 3) + 17 / 9 * Math.pow(temp, 3) - 22 / 9 * temp;
+    } 
+}
+
+function calPercentage(point, set) {
+    var ColorPercentTemp;
+    var i;
+    var sum = 0;
+    colortmp = new Color(0);
+
+    for (i = 0; i < RecordedBlob.length; i++) {
+        var t = Percentage
+        ColorPercentTemp[i] = Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius);
+        sum += ColorPercentTemp[i];
+        colortmp.add(RecordedBlob[i].color, ColorPercentTemp[i]);
+    }
+
+    if (sum < Threshold) {
+        return new Color(255);
+    }
+    colortmp.divid(sum);
+    return colortmp;
+
+}
+
 
 // register events
 // Tell Photoshop the events we want to listen for
@@ -137,6 +240,7 @@ function JSLogIt(inMessage) {
     //csInterface.evalScript("LogIt('" + inMessage + "')");
 }
 
+
 function init() {
     // 初始化界面
     themeManager.init();
@@ -148,8 +252,14 @@ function init() {
 
         $("#btn_change").click(function () {
             ChangeSelectedColor();
+            //redrawCanvas();
         });
+        $("#maincanvas").click(function () {
+            //ChangeSelectedColor();
+            redrawCanvas();
+            //drawtest();
 
+        });
         Register(true, gRegisteredEvents.toString());
     } catch (e) {
         JSLogIt("InitializeCallback catch: " + e);
