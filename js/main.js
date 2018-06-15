@@ -45,6 +45,8 @@ var selectedBlob = -1;               // record the index of ball being choosen
 var falloff = 5;
 var Threshold = 0.1;
 
+
+
 function Blob(Color, x, y, radius) {
     this.color = Color;
     this.center = new Point(x, y);
@@ -62,7 +64,7 @@ function Color(init)
     this.green = init;
     this.blue = init;
 
-    function ColorToHexString() {
+    this.ColorToHexString = function () {
         var s = "";
         try {
             s += this.red.toString(16);
@@ -74,13 +76,13 @@ function Color(init)
         return s;
     }
 
-    function add(newcolor, per) {
+    this.add = function(newcolor, per) {
         this.red += newcolor.red * per;
         this.green += newcolor.green * per;
         this.blue += newcolor.blue * per;    
     }
 
-    function divid(per){
+    this.divid = function(per){
         this.red /= per;
         this.green /= per;
         this.blue /= per;
@@ -93,7 +95,7 @@ function Color(init)
 function CreateNewLayer() {
     console.log("Create");
     //TODO
-    numOfAllBlob++;
+    //numOfAllBlob++;
     csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
 }
 
@@ -155,6 +157,7 @@ function redrawCanvas() {
     console.log("redrawCanvas");
     height = UICanvas.getAttribute("height");
     width = UICanvas.getAttribute("width");
+    console.log(RecordedBlob.length);
 
     var data = UICanvasContext.createImageData(width, height);
     for (var x = 0; x < data.width; x++) {
@@ -196,20 +199,21 @@ function Percentage(pointA, pointB, r) {
 }
 
 function calPercentage(point, set) {
-    var ColorPercentTemp;
+    var ColorPercentTemp = new Array();
     var i;
     var sum = 0;
     colortmp = new Color(0);
 
     for (i = 0; i < RecordedBlob.length; i++) {
-        var t = Percentage
         ColorPercentTemp[i] = Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius);
         sum += ColorPercentTemp[i];
         colortmp.add(RecordedBlob[i].color, ColorPercentTemp[i]);
     }
 
     if (sum < Threshold) {
-        return new Color(255);
+        var colorred = new Color(255);
+        colorred.blue = 0;
+        return colorred;
     }
     colortmp.divid(sum);
     return colortmp;
@@ -267,6 +271,13 @@ function init() {
 
     csInterface.evalScript("getForgroudColor()");
 
+    // Test
+    newblob = new Blob(new Color(150), 100, 50, 100);
+    console.log(newblob);
+    RecordedBlob.push(newblob);
+    
+    newblob = new Blob(new Color(40), 100, 150, 70);
+    RecordedBlob.push(newblob);
 }
 
 init();
