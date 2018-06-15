@@ -25,6 +25,8 @@ csInterface.addEventListener("com.HCI.ColorMixer.colorsys", ColorSychronizeCallb
 // create new layer
 
 var UICreateColor = window.document.getElementById("CreateColor");
+var UIBallColor = window.document.getElementById("ballcolor");
+
 var UICanvas = window.document.getElementById("maincanvas");
 var UICanvasContext = window.document.getElementById("maincanvas").getContext("2d");
 //console.log(UICanvas);
@@ -39,8 +41,8 @@ var selectedBlob = -1;               // record the index of ball being choosen
 
 // Place for parameter
 //MARK  may need slighty change it for a bettr effect
-var falloff = 30;
-var Threshold = 0.1;
+var falloff = 50;
+var Threshold = 0.6;
 
 function Blob(Color, x, y, radius) {
     this.color = Color;
@@ -64,7 +66,7 @@ function Color(init)
         try {
             s += this.red.toString(16);
             s += this.green.toString(16);
-            s += this.blue.toString(16);
+            s += this.blue.toString(16);          
         } catch (e) {
             s = e.toString();
         }
@@ -94,6 +96,7 @@ function CreateNewLayer() {
     var newblob = new Blob(activeColor, 20, 20, 10);
     RecordedBlob.push(newblob);
 
+    //console.log("forgroundColor" + forgroundColor)
     csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
     redrawCanvas();
 }
@@ -110,30 +113,27 @@ function StringToColor(str) {
 // 界面同步
 // ==================================================================
 
-// TODO no use
-function CreateNewLayerSetIDCallbackEvent() {
-    console.log("Create");
-    //WARNING wander whether synchronize will meet error
-
-    //csInterface.evalScript("CreateNewLayer('" + +")'");
-}
-
 
 // Synchronize the color 
 function ColorSychronizeCallbackEvent(csEvent)
 {
     //TODO
-    console.log("ColorSychronizeCallbackEvent");
-    console.log(csEvent);
-    UICreateColor.style.backgroundColor = '#' + csEvent.data;
-    forgroundColor = String(csEvent.data);
+    //console.log("ColorSychronizeCallbackEvent");
+    //console.log(csEvent);
+
+    var colors = csEvent.data.split(",");
+    UICreateColor.style.backgroundColor = '#' + colors[0];
+    forgroundColor = String(colors[0]);
+
+    changeBlobColor(colors[1]);
+
 }
 
 
 // Handle the Event got From PS
 function PSCallbackEvent(csEvent) {
     // TODO .. More detailed treatment
-    console.log("PSCallbackEvent");
+    //console.log("PSCallbackEvent");
     try {
         if (typeof csEvent.data === "string") {
             var eventData = csEvent.data.replace("ver1,{", "{");
@@ -155,13 +155,17 @@ function PSCallbackEvent(csEvent) {
 }
 
 // Choose the color 
-function ChangeSelectedColor() {
+function ChangeSelectedColor(x, y) {
+
     console.log("ChangeSelectedColor");
-
-
+    console.log(ColorPercent);
 
     csInterface.evalScript("ChangeSelectedColor('" + ColorPercent + "')");
-    
+    pointx = x;
+    pointy = y;
+    var point = new Point(x, y);
+    calPercentage(point, true);
+
 }
 
 
@@ -169,10 +173,10 @@ function ChangeSelectedColor() {
 // Canvas 绘制函数
 // ==================================================================
 function redrawCanvas() {
-    console.log("redrawCanvas");
+    //console.log("redrawCanvas");
     height = UICanvas.getAttribute("height");
     width = UICanvas.getAttribute("width");
-    console.log(RecordedBlob.length);
+    //console.log(RecordedBlob.length);
 
     var data = UICanvasContext.createImageData(width, height);
     for (var x = 0; x < data.width; x++) {
@@ -194,10 +198,12 @@ function redrawCanvas() {
     UICanvasContext.putImageData(data, 0, 0);
 }
 
+
 function distance2(pointA, pointB)
 {
     return Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2);
 }
+
 
 function Percentage(pointA, pointB, r) {
     var temp = distance2(pointA, pointB) / Math.pow(r + falloff, 2);
@@ -220,12 +226,21 @@ function calPercentage(point, set) {
         sum += ColorPercentTemp[i];
         colortmp.add(RecordedBlob[i].color, ColorPercentTemp[i]);
     }
-
     if (sum < Threshold) {
         var colorred = new Color(255);
+        if (set) {
+            for (i = 0; i < RecordedBlob.length; i++) {
+                ColorPercent[i] = 0;
+            }
+        }
         return colorred;
     }
     colortmp.divid(sum);
+    if (set) {
+        for (i = 0; i < RecordedBlob.length; i++) {
+            ColorPercent[i] = parseInt(ColorPercentTemp[i] / sum * 100);
+        }
+    }
     return colortmp;
 
 }
@@ -251,19 +266,46 @@ function Register(inOn, inEvents) {
     console.log("Register:" + inOn);
 }
 
+
+function changeBlobColor(color) {
+    if (selectedBlob == -1) {
+        return;
+    }
+    var newcolor = StringToColor(color);
+    redrawCanvas();
+    RecordedBlob[selectedBlob].color = newcolor;
+    selectBlobSetting();
+}
+
+
+function selectBlobSetting() {
+    if (selectedBlob == -1) {
+        UIBallColor.style.backgroundColor = "#FFFFFF";
+        return;
+    }
+
+    var colorstr = RecordedBlob[selectedBlob].color.ColorToHexString();
+    UIBallColor.style.backgroundColor = "#" + colorstr;
+    csInterface.evalScript("setBackgroudColor('" + colorstr + "')");
+}
+
+
 function selectBlob(x, y) {
     // 选择在半径之内的最大的
+
     var minR = -1;
+    selectedBlob = -1;
     var point = new Point(x, y);
     for (i = 0; i < RecordedBlob.length; i++) {
-        if (Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius) > 0) {
+        if (Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius) > Threshold) {
             if (distance2(point, RecordedBlob[i].center) > minR) {
-                console.log("SELECT" + i);
+                //console.log("SELECT" + i);
                 minR = distance2(point, RecordedBlob[i].center);
                 selectedBlob = i;
             }
         }
     }
+    selectBlobSetting();
 }
 
 
@@ -273,7 +315,8 @@ function JSLogIt(inMessage) {
     //csInterface.evalScript("LogIt('" + inMessage + "')");
 }
 
-
+var lastx, lasty;
+var pointx, pointy;
 function init() {
     // 初始化界面
     themeManager.init();
@@ -283,30 +326,29 @@ function init() {
             CreateNewLayer();
         });
 
-        $("#btn_change").click(function () {
-            ChangeSelectedColor();
-            //redrawCanvas();
-        });
         var canEvent = $("#maincanvas");
         //console.log(canEvent);
-        canEvent.click(function () {
-            //ChangeSelectedColor();
-            redrawCanvas();
-            //drawtest();
-        });
+        //canEvent.click(function () {
+        //    //ChangeSelectedColor();
+        //    redrawCanvas();
+        //});
+
         canEvent.mousedown(function (e) {
             if (e.button == 0) //right
             {
+                ChangeSelectedColor(e.offsetX, e.offsetY);
 
             }
             if (e.button == 2) //left
             {
-                selectBlob(e.offsetX,e.offsetY);
+                selectBlob(e.offsetX, e.offsetY);
+                lastx = e.offsetX;
+                lasty = e.offsetY;
                 leftmousedown = true;
             }
         });
         canEvent.mouseup(function (e) {
-            console.log("MOUSEUP");
+            //console.log("MOUSEUP");
             if (e.button == 2) //left
             {
                 leftmousedown = false;
@@ -318,13 +360,16 @@ function init() {
             //console.log(e);
             if (selectedBlob >= 0 && leftmousedown)
             {
-                RecordedBlob[selectedBlob].center.x = e.offsetX;
-                RecordedBlob[selectedBlob].center.y = e.offsetY;
+                RecordedBlob[selectedBlob].center.x += e.offsetX - lastx;
+                RecordedBlob[selectedBlob].center.y += e.offsetY - lasty
+                lastx = e.offsetX;
+                lasty = e.offsetY;
                 redrawCanvas();
             }
-
         });
         Register(true, gRegisteredEvents.toString());
+        calPercentage(new Point(0, 0), true);
+
     } catch (e) {
         JSLogIt("InitializeCallback catch: " + e);
     }

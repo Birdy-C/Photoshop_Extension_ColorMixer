@@ -48,13 +48,15 @@ function addNewColor(inColor) {
 
         app.activeDocument.activeLayer = worklayer;
 
-        alert("create");
+        //alert("create");
     } catch (e) {
-        alert(e);
+        alert("addNewColor" + e);
     }
 
 }
 
+
+// TODO :NO USE
 function setAlllayerInvisiable(info) {
     try {
         var i = 0;
@@ -71,7 +73,16 @@ function setAlllayerInvisiable(info) {
 
 function ChangeSelectedColor(selectedColor) {
     try {
-       // alert(index);
+        // 选择一个像素块……
+        var shapeRef = [
+            [0, 0],
+            [0, 1],
+            [1, 1],
+            [1, 0],
+            [0, 0]
+        ]
+        app.activeDocument.selection.select(shapeRef);
+        // alert(index);
         // 先把工作图层的内容合到前几个图层之内
         // 把所有图层被绘制涉及到的部分清空
         // 把其他都设置成不可见 读取工作图层的通道
@@ -93,8 +104,9 @@ function ChangeSelectedColor(selectedColor) {
 
         var selection = app.activeDocument.selection;   // initilize
         var channelDraw = app.activeDocument.channels[0];
-        selection.load(channelDraw, SelectionType.REPLACE);
+        selection.load(channelDraw, SelectionType.EXTEND);
         // TODO add check if the layer is empty
+        //alert(selection.sold);
 
         layerWhite.remove();
         layerBlack.remove();
@@ -118,6 +130,8 @@ function ChangeSelectedColor(selectedColor) {
         selection.deselect();
         worklayer.clear();
 
+        app.activeDocument.activeLayer = worklayer;
+
         //change the forground color
 
     } catch (e) {
@@ -132,6 +146,12 @@ function unwanttedOperation() {
 
 
 
+function setBackgroudColor(selectedColor) {
+
+    app.backgroundColor.rgb.hexValue = selectedColor;
+
+}
+
 
 function getForgroudColor() {
     //alert(loadSuccess);
@@ -139,7 +159,7 @@ function getForgroudColor() {
         if (loadSuccess) {
             var eventJAX = new CSXSEvent();                     //创建事件对象
             eventJAX.type = "com.HCI.ColorMixer.colorsys";      //设定一个类型名称
-            eventJAX.data = app.foregroundColor.rgb.hexValue;   // 事件要传递的信息
+            eventJAX.data = app.foregroundColor.rgb.hexValue + "," + app.backgroundColor.rgb.hexValue;   // 事件要传递的信息
             eventJAX.dispatch();                                // GO ! 发送事件
             //alert("Already Diapatch")
         }
