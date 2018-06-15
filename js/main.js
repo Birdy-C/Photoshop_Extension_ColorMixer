@@ -194,7 +194,7 @@ function Percentage(pointA, pointB, r) {
         return 0;
     }
     else {
-        return 1 - 4 / 9 * Math.pow(temp, 3) + 17 / 9 * Math.pow(temp, 3) - 22 / 9 * temp;
+        return 1 - 4 / 9 * Math.pow(temp, 3) + 17 / 9 * Math.pow(temp, 2) - 22 / 9 * temp;
     } 
 }
 
@@ -272,11 +272,11 @@ function init() {
     csInterface.evalScript("getForgroudColor()");
 
     // Test
-    newblob = new Blob(new Color(150), 100, 50, 100);
+    newblob = new Blob(new Color(150), 100, 50, 70);
     console.log(newblob);
     RecordedBlob.push(newblob);
     
-    newblob = new Blob(new Color(40), 100, 150, 70);
+    newblob = new Blob(new Color(40), 100, 150, 50);
     RecordedBlob.push(newblob);
 }
 
