@@ -16,9 +16,6 @@
         <div>
 
             <!--create new layer with the foreground color-->
-            X: <input type="number" id="xAxis" min="1" max="10" />
-            Y: <input type="number" id="yAxis" min="1" max="10" />
-            R: <input type="number" id="radius" min="1" max="10" />
             <div id="CreateColor" style="background-color:#FFFFFF;">Color</div>
             <button id="btn_create" class="topcoat-button--large hostFontSize">Create</button>
 
@@ -37,7 +34,12 @@
 
     </div>
 
-  <script src="js/libs/CSInterface.js"></script>
+
+     <!--静止右键弹出窗口-->
+    <script language="Javascript">
+        document.oncontextmenu = function () { return false; }
+    </script>
+    <script src="js/libs/CSInterface.js"></script>
     <script src="js/libs/jquery-2.0.2.min.js"></script>
 
     <script src="js/themeManager.js"></script>

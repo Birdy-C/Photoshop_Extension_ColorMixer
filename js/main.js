@@ -23,10 +23,7 @@ csInterface.addEventListener("com.HCI.ColorMixer.colorsys", ColorSychronizeCallb
 
 //  UI items 
 // create new layer
-//
-var UIxAxis = window.document.getElementById("xAxis");
-var UIyAxis = window.document.getElementById("yAxis");
-var UIradius = window.document.getElementById("radius");
+
 var UICreateColor = window.document.getElementById("CreateColor");
 var UICanvas = window.document.getElementById("maincanvas");
 var UICanvasContext = window.document.getElementById("maincanvas").getContext("2d");
@@ -42,10 +39,8 @@ var selectedBlob = -1;               // record the index of ball being choosen
 
 // Place for parameter
 //MARK  may need slighty change it for a bettr effect
-var falloff = 5;
+var falloff = 30;
 var Threshold = 0.1;
-
-
 
 function Blob(Color, x, y, radius) {
     this.color = Color;
@@ -82,7 +77,7 @@ function Color(init)
         this.blue += newcolor.blue * per;    
     }
 
-    this.divid = function(per){
+    this.divid = function (per) {
         this.red /= per;
         this.green /= per;
         this.blue /= per;
@@ -94,10 +89,26 @@ function Color(init)
 // ============= Synchronize the color =============
 function CreateNewLayer() {
     console.log("Create");
-    //TODO
-    //numOfAllBlob++;
+    //
+    var activeColor = StringToColor(forgroundColor);
+    var newblob = new Blob(activeColor, 20, 20, 10);
+    RecordedBlob.push(newblob);
+
     csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
+    redrawCanvas();
 }
+
+function StringToColor(str) {
+    var activeColor = new Color(0);
+    activeColor.red = parseInt(str.substr(0, 2), 16);
+    activeColor.green = parseInt(str.substr(2, 2), 16);
+    activeColor.blue = parseInt(str.substr(4, 2), 16);
+    return activeColor;
+}
+
+// ==================================================================
+// 界面同步
+// ==================================================================
 
 // TODO no use
 function CreateNewLayerSetIDCallbackEvent() {
@@ -115,7 +126,7 @@ function ColorSychronizeCallbackEvent(csEvent)
     console.log("ColorSychronizeCallbackEvent");
     console.log(csEvent);
     UICreateColor.style.backgroundColor = '#' + csEvent.data;
-    forgroundColor = csEvent.data;
+    forgroundColor = String(csEvent.data);
 }
 
 
@@ -143,7 +154,7 @@ function PSCallbackEvent(csEvent) {
     }
 }
 
-// ============= Choose the color =============
+// Choose the color 
 function ChangeSelectedColor() {
     console.log("ChangeSelectedColor");
 
@@ -153,6 +164,10 @@ function ChangeSelectedColor() {
     
 }
 
+
+// ==================================================================
+// Canvas 绘制函数
+// ==================================================================
 function redrawCanvas() {
     console.log("redrawCanvas");
     height = UICanvas.getAttribute("height");
@@ -179,10 +194,6 @@ function redrawCanvas() {
     UICanvasContext.putImageData(data, 0, 0);
 }
 
-
-// ==================================================================
-// 功能函数
-// ==================================================================
 function distance2(pointA, pointB)
 {
     return Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2);
@@ -212,7 +223,6 @@ function calPercentage(point, set) {
 
     if (sum < Threshold) {
         var colorred = new Color(255);
-        colorred.blue = 0;
         return colorred;
     }
     colortmp.divid(sum);
@@ -220,6 +230,10 @@ function calPercentage(point, set) {
 
 }
 
+// ==================================================================
+// 鼠标以及其他事件
+// ==================================================================
+var leftmousedown = false;
 
 // register events
 // Tell Photoshop the events we want to listen for
@@ -237,10 +251,25 @@ function Register(inOn, inEvents) {
     console.log("Register:" + inOn);
 }
 
+function selectBlob(x, y) {
+    // 选择在半径之内的最大的
+    var minR = -1;
+    var point = new Point(x, y);
+    for (i = 0; i < RecordedBlob.length; i++) {
+        if (Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius) > 0) {
+            if (distance2(point, RecordedBlob[i].center) > minR) {
+                console.log("SELECT" + i);
+                minR = distance2(point, RecordedBlob[i].center);
+                selectedBlob = i;
+            }
+        }
+    }
+}
+
 
 // For output
 function JSLogIt(inMessage) {
-    console.log("Log " + inMessage);
+    //console.log("Log " + inMessage);
     //csInterface.evalScript("LogIt('" + inMessage + "')");
 }
 
@@ -258,10 +287,41 @@ function init() {
             ChangeSelectedColor();
             //redrawCanvas();
         });
-        $("#maincanvas").click(function () {
+        var canEvent = $("#maincanvas");
+        //console.log(canEvent);
+        canEvent.click(function () {
             //ChangeSelectedColor();
             redrawCanvas();
             //drawtest();
+        });
+        canEvent.mousedown(function (e) {
+            if (e.button == 0) //right
+            {
+
+            }
+            if (e.button == 2) //left
+            {
+                selectBlob(e.offsetX,e.offsetY);
+                leftmousedown = true;
+            }
+        });
+        canEvent.mouseup(function (e) {
+            console.log("MOUSEUP");
+            if (e.button == 2) //left
+            {
+                leftmousedown = false;
+            }
+        });
+
+        canEvent.mousemove(function(e) {
+            //console.log("MOUSEMOVE");
+            //console.log(e);
+            if (selectedBlob >= 0 && leftmousedown)
+            {
+                RecordedBlob[selectedBlob].center.x = e.offsetX;
+                RecordedBlob[selectedBlob].center.y = e.offsetY;
+                redrawCanvas();
+            }
 
         });
         Register(true, gRegisteredEvents.toString());
@@ -270,14 +330,8 @@ function init() {
     }
 
     csInterface.evalScript("getForgroudColor()");
+    redrawCanvas();
 
-    // Test
-    newblob = new Blob(new Color(150), 100, 50, 70);
-    console.log(newblob);
-    RecordedBlob.push(newblob);
-    
-    newblob = new Blob(new Color(40), 100, 150, 50);
-    RecordedBlob.push(newblob);
 }
 
 init();
