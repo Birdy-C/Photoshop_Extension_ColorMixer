@@ -14,7 +14,7 @@ var eventSelect = 1936483188;   // "slct"
 var eventSet = 1936028772;      // "setd" 
 
 //  Register Events 
-var gRegisteredEvents = [eventMake, eventDelete, eventClose, eventSelect, eventSet];
+var gRegisteredEvents = [eventMake, eventDelete, eventClose, eventSelect, eventSet]; //TODO ADD DRAW EVENT
 
 // all callbacks need to be unique so only your panel gets them
 // for Photoshop specific add on the id of your extension
@@ -31,13 +31,13 @@ var UICanvas = window.document.getElementById("maincanvas");
 var UICanvasContext = window.document.getElementById("maincanvas").getContext("2d");
 //console.log(UICanvas);
 //console.log(UICanvasContext);
-var forgroundColor = "FFFFFF";
-var canvasColor = "#FFFFFF"
+var foregroundColor = "FFFFFF";
+var backgroundColor;
 // Place for Recording 
 var RecordedBlob = new Array();     // record the color ball
 var ColorPercent = new Array();    // record the percent of each selected ball  within [0,100]
 //var usedColor = new Array();       // record used Color
-var selectedBlob = -1;               // record the index of ball being choosen
+var selectedBlobRec = -1;               // record the index of ball being choosen
 
 // Place for parameter
 //MARK  may need slighty change it for a bettr effect
@@ -55,6 +55,12 @@ function Point(x, y) {
     this.y = y;
 }
 
+function padding(num) {
+    if (num.length < 2)
+        num = '0' + num;
+    return num;
+}
+
 function Color(init)
 {
     this.red = init;
@@ -64,9 +70,9 @@ function Color(init)
     this.ColorToHexString = function () {
         var s = "";
         try {
-            s += this.red.toString(16);
-            s += this.green.toString(16);
-            s += this.blue.toString(16);          
+            s += padding(parseInt(this.red).toString(16));
+            s += padding(parseInt(this.green).toString(16));
+            s += padding(parseInt(this.blue).toString(16));
         } catch (e) {
             s = e.toString();
         }
@@ -92,13 +98,13 @@ function Color(init)
 function CreateNewLayer() {
     console.log("Create");
     //
-    var activeColor = StringToColor(forgroundColor);
+    var activeColor = StringToColor(foregroundColor);
     var newblob = new Blob(activeColor, 20, 20, 10);
     ColorPercent[RecordedBlob.length] = 0;
     RecordedBlob.push(newblob);
 
-    //console.log("forgroundColor" + forgroundColor)
-    csInterface.evalScript("addNewColor('" + forgroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
+    //console.log("foregroundColor" + foregroundColor)
+    csInterface.evalScript("addNewColor('" + foregroundColor + "')");//who could tell me why the lack of ' makes such a strange error!!
     redrawCanvas();
 }
 
@@ -120,11 +126,11 @@ function ColorSychronizeCallbackEvent(csEvent)
 {
     //TODO
     //console.log("ColorSychronizeCallbackEvent");
-    //console.log(csEvent);
+    console.log(colors);
 
     var colors = csEvent.data.split(",");
     UICreateColor.style.backgroundColor = '#' + colors[0];
-    forgroundColor = String(colors[0]);
+    foregroundColor = String(colors[0]);
 
     changeBlobColor(colors[1]);
 
@@ -140,13 +146,15 @@ function PSCallbackEvent(csEvent) {
             var eventData = csEvent.data.replace("ver1,{", "{");
             var eventDataParse = JSON.parse(eventData);
             var jsonStringBack = JSON.stringify(eventDataParse);
-            //SetResultLabel("PhotoshopCallbackUnique: " + jsonStringBack);
+            //JSLogIt("PSCallbackEvent: " + jsonStringBack);  // Output
 
-            JSLogIt("PSCallbackEvent: " + jsonStringBack);  // Output
+            // Handle the colorSelect Event
+            if (eventDataParse.eventData.source == "colorPickerPanel")
+                csInterface.evalScript("getForegroudColor()");
 
+
+            drawed = true;
             // Synchronize the color
-            // TODO select the information
-            csInterface.evalScript("getForgroudColor()");
         } else {
             JSLogIt("PhotoshopCallbackUnique expecting string for csEvent.data!");
         }
@@ -156,23 +164,28 @@ function PSCallbackEvent(csEvent) {
 }
 
 // Choose the color 
+var drawed = false;
 function ChangeSelectedColor(x, y) {
 
-    console.log("ChangeSelectedColor");
-    console.log(ColorPercent);
+    //console.log("ChangeSelectedColor");
+    //console.log(ColorPercent);
     s = ""
     for (i = 0; i < ColorPercent.length; i++) {
         s += ColorPercent[i].toString();
         s += ','
     }
 
+    if (drawed) {
+        csInterface.evalScript("ChangeSelectedColor('" + s + "')");
+        drawed = false;
+    }
 
-    csInterface.evalScript("ChangeSelectedColor('" + s + "')");
-    pointx = x;
-    pointy = y;
     var point = new Point(x, y);
-    calPercentage(point, true);
-
+    var colortmp = calPercentage(point, true);
+    console.log(colortmp.ColorToHexString())
+    UICreateColor.style.backgroundColor = "#" + colortmp.ColorToHexString();
+    csInterface.evalScript("setForegroudColor('" + colortmp.ColorToHexString() + "')");
+    redrawCanvas();
 }
 
 
@@ -203,6 +216,9 @@ function redrawCanvas() {
     }
     //set the data back
     UICanvasContext.putImageData(data, 0, 0);
+    if (selectColorInCM) {
+        UICanvasContext.arc(pointx, pointy, 30, 0, 2 * Math.PI, true);
+    }
 }
 
 
@@ -221,6 +237,7 @@ function Percentage(pointA, pointB, r) {
         return 1 - 4 / 9 * Math.pow(temp, 3) + 17 / 9 * Math.pow(temp, 2) - 22 / 9 * temp;
     } 
 }
+
 
 function calPercentage(point, set) {
     var ColorPercentTemp = new Array();
@@ -270,28 +287,37 @@ function Register(inOn, inEvents) {
     event.extensionId = gExtensionID;
     event.data = inEvents;
     csInterface.dispatchEvent(event);
-    console.log("Register:" + inOn);
+    //console.log("Register:" + inOn);
 }
 
 
 function changeBlobColor(color) {
-    if (selectedBlob == -1) {
+    if (selectedBlobRec == -1) {
         return;
     }
+    //if (RecordedBlob[selectedBlobRec].color == newcolor)       //If the color does not change
+    //    return;
+
     var newcolor = StringToColor(color);
+    var s = selectedBlobRec.toString() + ',' + newcolor.ColorToHexString();
+    console.log("ChangeCOLOR"+s);
+    csInterface.evalScript("changeLayerColor('" + s + "')");
+
+    RecordedBlob[selectedBlobRec].color = newcolor;
+
     redrawCanvas();
-    RecordedBlob[selectedBlob].color = newcolor;
     selectBlobSetting();
+    
 }
 
 
 function selectBlobSetting() {
-    if (selectedBlob == -1) {
+    if (selectedBlobRec == -1) {
         UIBallColor.style.backgroundColor = "#FFFFFF";
         return;
     }
 
-    var colorstr = RecordedBlob[selectedBlob].color.ColorToHexString();
+    var colorstr = RecordedBlob[selectedBlobRec].color.ColorToHexString();
     UIBallColor.style.backgroundColor = "#" + colorstr;
     csInterface.evalScript("setBackgroudColor('" + colorstr + "')");
 }
@@ -301,14 +327,14 @@ function selectBlob(x, y) {
     // 选择在半径之内的最大的
 
     var minR = -1;
-    selectedBlob = -1;
+    selectedBlobRec = -1;
     var point = new Point(x, y);
     for (i = 0; i < RecordedBlob.length; i++) {
         if (Percentage(point, RecordedBlob[i].center, RecordedBlob[i].radius) > Threshold) {
             if (distance2(point, RecordedBlob[i].center) > minR) {
                 //console.log("SELECT" + i);
                 minR = distance2(point, RecordedBlob[i].center);
-                selectedBlob = i;
+                selectedBlobRec = i;
             }
         }
     }
@@ -318,12 +344,14 @@ function selectBlob(x, y) {
 
 // For output
 function JSLogIt(inMessage) {
-    //console.log("Log " + inMessage);
+    console.log("Log " + inMessage);
     //csInterface.evalScript("LogIt('" + inMessage + "')");
 }
 
 var lastx, lasty;
 var pointx, pointy;
+var selectColorInCM;
+
 function init() {
     // 初始化界面
     themeManager.init();
@@ -343,6 +371,9 @@ function init() {
         canEvent.mousedown(function (e) {
             if (e.button == 0) //right
             {
+                pointx = e.offsetX;
+                pointy = e.offsetY;
+                selectColorInCM = true;
                 ChangeSelectedColor(e.offsetX, e.offsetY);
 
             }
@@ -365,10 +396,10 @@ function init() {
         canEvent.mousemove(function(e) {
             //console.log("MOUSEMOVE");
             //console.log(e);
-            if (selectedBlob >= 0 && leftmousedown)
+            if (selectedBlobRec >= 0 && leftmousedown)
             {
-                RecordedBlob[selectedBlob].center.x += e.offsetX - lastx;
-                RecordedBlob[selectedBlob].center.y += e.offsetY - lasty
+                RecordedBlob[selectedBlobRec].center.x += e.offsetX - lastx;
+                RecordedBlob[selectedBlobRec].center.y += e.offsetY - lasty
                 lastx = e.offsetX;
                 lasty = e.offsetY;
                 redrawCanvas();
@@ -376,13 +407,13 @@ function init() {
         });
         Register(true, gRegisteredEvents.toString());
         calPercentage(new Point(0, 0), true);
+        csInterface.evalScript("getForegroudColor()");
+        redrawCanvas();
 
     } catch (e) {
         JSLogIt("InitializeCallback catch: " + e);
     }
 
-    csInterface.evalScript("getForgroudColor()");
-    redrawCanvas();
 
 }
 

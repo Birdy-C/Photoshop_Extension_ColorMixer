@@ -159,9 +159,36 @@ function setBackgroudColor(selectedColor) {
     app.backgroundColor.rgb.hexValue = selectedColor;
 
 }
+function setForegroudColor(selectedColor) {
 
+    app.foregroundColor.rgb.hexValue = selectedColor;
 
-function getForgroudColor() {
+}
+
+function changeLayerColor(str)
+{
+
+    // while form a circle
+
+    try {
+        //alert("LAY!");
+        var info = str.split(',')
+        var colorRef = new SolidColor;
+        colorRef.rgb.hexValue = info[1];
+
+        app.activeDocument.selection.selectAll;
+        app.activeDocument.activeLayer = myLayerSets[2 * parseInt(info[0]) + 1];
+        app.activeDocument.selection.fill(colorRef);
+
+        app.activeDocument.activeLayer = worklayer;
+    } catch (e) {
+        alert(e);
+    }
+
+}
+
+// both for foreground and back
+function getForegroudColor() {
     //alert(loadSuccess);
     try {
         if (loadSuccess) {
@@ -276,7 +303,7 @@ function init() {
 
     worklayer = app.activeDocument.artLayers.add();
     worklayer.name = "CM Workspace";
-    //getForgroudColor();
+    //getForegroudColor();
 
 
     colorblack.rgb.red = 0;
