@@ -38,7 +38,7 @@ var RecordedBlob = new Array();     // record the color ball
 var ColorPercent = new Array();    // record the percent of each selected ball  within [0,100]
 //var usedColor = new Array();       // record used Color
 var selectedBlobRec = -1;               // record the index of ball being choosen
-
+var selectedColor = new Color(255);
 // Place for parameter
 //MARK  may need slighty change it for a bettr effect
 var falloff = 50;
@@ -149,9 +149,13 @@ function PSCallbackEvent(csEvent) {
             //JSLogIt("PSCallbackEvent: " + jsonStringBack);  // Output
 
             // Handle the colorSelect Event
-            if (eventDataParse.eventData.source == "colorPickerPanel")
+            if (eventDataParse.eventData.source == "colorPickerPanel") {
                 csInterface.evalScript("getForegroudColor()");
-
+                //if (eventDataParse.eventData.null._property == "foregroundColor")
+                {
+                    selectColorInCM = false;
+                }
+            }
 
             drawed = true;
             // Synchronize the color
@@ -164,6 +168,7 @@ function PSCallbackEvent(csEvent) {
 }
 
 // Choose the color 
+// TODO the acceleration of Draw
 var drawed = false;
 function ChangeSelectedColor(x, y) {
 
@@ -182,7 +187,8 @@ function ChangeSelectedColor(x, y) {
 
     var point = new Point(x, y);
     var colortmp = calPercentage(point, true);
-    console.log(colortmp.ColorToHexString())
+    //console.log(colortmp.ColorToHexString())
+    selectedColor = colortmp;
     UICreateColor.style.backgroundColor = "#" + colortmp.ColorToHexString();
     csInterface.evalScript("setForegroudColor('" + colortmp.ColorToHexString() + "')");
     redrawCanvas();
@@ -217,7 +223,19 @@ function redrawCanvas() {
     //set the data back
     UICanvasContext.putImageData(data, 0, 0);
     if (selectColorInCM) {
-        UICanvasContext.arc(pointx, pointy, 30, 0, 2 * Math.PI, true);
+        var cxt = UICanvasContext;
+
+        //画一个空心圆
+        cxt.beginPath();
+        cxt.arc(pointx, pointy, 5, 0, Math.PI * 2, false);
+        cxt.lineWidth = 2;
+        if ((selectedColor.red > 222 && selectedColor.green > 222 && selectedColor.blue > 222)) {
+            cxt.strokeStyle = "#111111";
+        }
+        else { cxt.strokeStyle = "#DDDDDD"; }
+        cxt.stroke();//画空心圆
+        cxt.closePath();
+        //UICanvasContext.arc(pointx, pointy, 30, 0, 2 * Math.PI, true);
     }
 }
 
@@ -261,8 +279,17 @@ function calPercentage(point, set) {
     }
     colortmp.divid(sum);
     if (set) {
+        // need to change the color for PS blending set
+        // 这里由于后面PS的正常的混合方式的要求需要对占比颜色做一点点变化
+        var sum_t = 0;
         for (i = 0; i < RecordedBlob.length; i++) {
-            ColorPercent[i] = parseInt(ColorPercentTemp[i] / sum * 100);
+            if (ColorPercentTemp[i] > 0) {
+                sum_t += ColorPercentTemp[i];
+                ColorPercent[i] = parseInt(ColorPercentTemp[i] / sum_t * 100);
+            }
+            else {
+                ColorPercent[i] = 0;
+            }
         }
     }
     return colortmp;
@@ -273,7 +300,7 @@ function calPercentage(point, set) {
 // 鼠标以及其他事件
 // ==================================================================
 var leftmousedown = false;
-
+var middlemousedown = false;
 // register events
 // Tell Photoshop the events we want to listen for
 function Register(inOn, inEvents) {
@@ -362,19 +389,22 @@ function init() {
         });
 
         var canEvent = $("#maincanvas");
-        //console.log(canEvent);
-        //canEvent.click(function () {
-        //    //ChangeSelectedColor();
-        //    redrawCanvas();
-        //});
+        console.log(canEvent);
+
 
         canEvent.mousedown(function (e) {
+            //console.log(e);
             if (e.button == 0) //right
             {
                 pointx = e.offsetX;
                 pointy = e.offsetY;
                 selectColorInCM = true;
                 ChangeSelectedColor(e.offsetX, e.offsetY);
+
+            }
+            if (e.button == 1) //middle
+            {
+                middlemousedown = true;
 
             }
             if (e.button == 2) //left
@@ -385,26 +415,47 @@ function init() {
                 leftmousedown = true;
             }
         });
+
         canEvent.mouseup(function (e) {
             //console.log("MOUSEUP");
-            if (e.button == 2) //left
-            {
-                leftmousedown = false;
-            }
+            //if (e.button == 2) //left
+            //{
+            leftmousedown = false;
+            middlemousedown = false;
+            //}
         });
 
         canEvent.mousemove(function(e) {
             //console.log("MOUSEMOVE");
             //console.log(e);
+
             if (selectedBlobRec >= 0 && leftmousedown)
             {
                 RecordedBlob[selectedBlobRec].center.x += e.offsetX - lastx;
                 RecordedBlob[selectedBlobRec].center.y += e.offsetY - lasty
-                lastx = e.offsetX;
-                lasty = e.offsetY;
                 redrawCanvas();
             }
+            if (selectedBlobRec >= 0 && middlemousedown)
+            {
+                RecordedBlob[selectedBlobRec].radius += (e.offsetX - lastx)/10;
+                if (RecordedBlob[selectedBlobRec].radius > 40)
+                    RecordedBlob[selectedBlobRec].radius = 40;
+                if (RecordedBlob[selectedBlobRec].radius < 5)
+                    RecordedBlob[selectedBlobRec].radius = 5;
+
+                redrawCanvas();
+            }
+            lastx = e.offsetX;
+            lasty = e.offsetY;
         });
+
+        canEvent.mouseout(function (e) {
+
+            leftmousedown = false;
+            middlemousedown = false;
+
+        });
+
         Register(true, gRegisteredEvents.toString());
         calPercentage(new Point(0, 0), true);
         csInterface.evalScript("getForegroudColor()");

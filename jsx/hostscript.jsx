@@ -107,11 +107,16 @@ function ChangeSelectedColor(strselectedColor) {
             [0, 0]
         ]
         app.activeDocument.selection.select(shapeRef);
+
         var selection = app.activeDocument.selection;   // initilize
         var channelDraw = app.activeDocument.channels[0];
         selection.load(channelDraw, SelectionType.EXTEND);
         // TODO add check if the layer is empty
         //alert(selection.sold);
+
+        //TODO
+        //selection.feather(5);
+
 
         layerWhite.remove();
         layerBlack.remove();
@@ -159,6 +164,8 @@ function setBackgroudColor(selectedColor) {
     app.backgroundColor.rgb.hexValue = selectedColor;
 
 }
+
+
 function setForegroudColor(selectedColor) {
 
     app.foregroundColor.rgb.hexValue = selectedColor;
