@@ -71,8 +71,33 @@ function setAlllayerInvisiable(info) {
 }
 
 
-function ChangeSelectedColor(selectedColor) {
+function ChangeSelectedColor(strselectedColor) {
+
+    // alert(index);
+    // 先把工作图层的内容合到前几个图层之内
+    // 把所有图层被绘制涉及到的部分清空
+    // 把其他都设置成不可见 读取工作图层的通道
+    //setAlllayerInvisiable(false);
+    //app.activeDocument
+
     try {
+        selectedColor = strselectedColor.split(",")
+        // change the drawing to black and white then
+        var layerBlack = app.activeDocument.artLayers.add();
+        app.activeDocument.selection.selectAll;
+        app.activeDocument.selection.fill(colorblack);
+
+        var layerWhite = app.activeDocument.artLayers.add();
+        app.activeDocument.selection.fill(colorwhite);
+
+        worklayer.move(layerBlack, ElementPlacement.PLACEBEFORE);
+        worklayer.move(layerWhite, ElementPlacement.PLACEAFTER);
+
+        layerWhite.grouped = true;
+
+        app.activeDocument.selection.deselect();
+
+
         // 选择一个像素块……
         var shapeRef = [
             [0, 0],
@@ -82,26 +107,6 @@ function ChangeSelectedColor(selectedColor) {
             [0, 0]
         ]
         app.activeDocument.selection.select(shapeRef);
-        // alert(index);
-        // 先把工作图层的内容合到前几个图层之内
-        // 把所有图层被绘制涉及到的部分清空
-        // 把其他都设置成不可见 读取工作图层的通道
-        //setAlllayerInvisiable(false);
-        //app.activeDocument
-
-        // change the drawing to black and white then
-        var layerBlack = app.activeDocument.artLayers.add();
-        app.activeDocument.selection.selectAll;
-        app.activeDocument.selection.fill(colorblack);
-        
-        var layerWhite = app.activeDocument.artLayers.add();
-        app.activeDocument.selection.fill(colorwhite);
-
-        worklayer.move(layerBlack, ElementPlacement.PLACEBEFORE);
-        worklayer.move(layerWhite, ElementPlacement.PLACEAFTER);
-
-        layerWhite.grouped = true;
-
         var selection = app.activeDocument.selection;   // initilize
         var channelDraw = app.activeDocument.channels[0];
         selection.load(channelDraw, SelectionType.EXTEND);
@@ -120,8 +125,11 @@ function ChangeSelectedColor(selectedColor) {
 
         var colortemp = colorblack;
         for (i = 0; i < index; i = i + 2) {
+            var num = parseInt(selectedColor[Math.floor(i / 2)]);
             app.activeDocument.activeLayer = myLayerSets[i];
-            selection.fill(colortemp,ColorBlendMode.NORMAL,selectedColor[i>>1]);// black to make it clear
+
+            if (num > 0)
+                selection.fill(colortemp, ColorBlendMode.NORMAL, num);// black to make it clear
         }
 
 

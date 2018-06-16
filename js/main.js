@@ -94,6 +94,7 @@ function CreateNewLayer() {
     //
     var activeColor = StringToColor(forgroundColor);
     var newblob = new Blob(activeColor, 20, 20, 10);
+    ColorPercent[RecordedBlob.length] = 0;
     RecordedBlob.push(newblob);
 
     //console.log("forgroundColor" + forgroundColor)
@@ -159,8 +160,14 @@ function ChangeSelectedColor(x, y) {
 
     console.log("ChangeSelectedColor");
     console.log(ColorPercent);
+    s = ""
+    for (i = 0; i < ColorPercent.length; i++) {
+        s += ColorPercent[i].toString();
+        s += ','
+    }
 
-    csInterface.evalScript("ChangeSelectedColor('" + ColorPercent + "')");
+
+    csInterface.evalScript("ChangeSelectedColor('" + s + "')");
     pointx = x;
     pointy = y;
     var point = new Point(x, y);
