@@ -22,9 +22,8 @@ try {
 
 
 function addNewColor(inColor) {
-    // 新建图层
-    //var myLayer = active
     try {
+        // 新建两个图层并塞到数组里
         var layerRef = app.activeDocument.artLayers.add();
         layerRef.name = "ColorMixer";
         var layerRefMask = app.activeDocument.artLayers.add();
@@ -36,23 +35,21 @@ function addNewColor(inColor) {
 
         // layerRefMask.blendMode = BlendMode.NORMAL; // auto
 
+        // 移到合适的位置 这里的worklayer就是之前那个workspace
         worklayer.move(layerRef, ElementPlacement.PLACEBEFORE);
         worklayer.move(layerRefMask, ElementPlacement.PLACEBEFORE);
+        layerRefMask.grouped = true;//设为剪切蒙版
 
-        app.activeDocument.selection.selectAll;
-        layerRefMask.grouped = true;
+        app.activeDocument.selection.selectAll;//选择所有颜色
 
         var colorRef = new SolidColor;
-        colorRef.rgb.hexValue = inColor;
+        colorRef.rgb.hexValue = inColor;// 设置颜色
         app.activeDocument.selection.fill(colorRef);
 
-        app.activeDocument.activeLayer = worklayer;
-
-        //alert("create");
+        app.activeDocument.activeLayer = worklayer;// 把激活图层回到Workspcace 免得读完之后位置不对
     } catch (e) {
         alert("addNewColor" + e);
     }
-
 }
 
 
