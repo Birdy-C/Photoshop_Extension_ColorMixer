@@ -1,5 +1,4 @@
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
-</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
 
 # com.HCI.ColorMixer  
 有一种（不好意思又给这个世界增加垃圾代码）了的感觉  
