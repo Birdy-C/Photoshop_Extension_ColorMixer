@@ -19,12 +19,12 @@ You can refer to the [Adobe CEP document](https://github.com/Adobe-CEP/CEP-Resou
 
 3. Find the ColorMixer and start it. It locates in Windows -  Extension - ColorMixer.
 
-Your interface will look like this: 
+Your interface will look like this:   
 
 ![startpic](./pic/start.png)
 
 ## How to use
-![intro1](./pic/intro1.png)
+![intro1](./pic/intro1.png)  
 
 1. The color is interact with the foreground color of the PS. You can change PS's foreground color to change it.
 2. Press the button, you will get a blob with the color above.
@@ -40,7 +40,7 @@ For the blobs:
 4. Left click, your can chose a color from the palette.
 
 
-The layers will be organized in the following way:
+The layers will be organized in the following way:  
 ![intro1](./pic/intro2.png)
 
 Trying to avoid unwanted motivition towards this layers.

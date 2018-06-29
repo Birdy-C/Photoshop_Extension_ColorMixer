@@ -49,6 +49,8 @@
     height:30px;
     border:solid 2px #4a4a4a;
     border-radius:5px;
+    line-height:30px;
+    text-align:center;
 }
 #btn_create{
     width:85px;
@@ -63,6 +65,8 @@
     height:30px;
     border:solid 2px #4a4a4a;
     border-radius:5px;
+    line-height:30px;
+    text-align:center;
 }
 /*
 Those classes will be edited at runtime with values specified
