@@ -39,8 +39,8 @@ For the blobs:
 3. Hold the meddle button and move left/right, you can change its size.
 4. Left click, your can chose a color from the palette.
 
+The layers will be organized in the following way:    
 
-The layers will be organized in the following way:  
 ![intro1](./pic/intro2.png)
 
 Trying to avoid unwanted motivition towards this layers.
