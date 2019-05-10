@@ -1,6 +1,8 @@
 # com.HCI.ColorMixer  
 
-<iframe width="1280" height="720" src="https://www.youtube.com/embed/DReQe-e84sw?list=PLROuc8SkrnEOKUWiDF3tyfNbE_g6GOKQO" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+演示视频地址
+https://youtu.be/DReQe-e84sw?list=PLROuc8SkrnEOKUWiDF3tyfNbE_g6GOKQO
+
 
 有一种（不好意思又给这个世界增加垃圾代码）了的感觉  
 
